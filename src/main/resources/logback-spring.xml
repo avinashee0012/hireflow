@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- Common Log Pattern -->
+    <property name="LOG_PATTERN"
+        value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+
+    <!-- Console Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <!-- DEV PROFILE LOGGING -->
+    <springProfile name="dev">
+        <logger name="com.avinashee0012.hireflow" level="INFO" />
+        <logger name="org.springframework" level="WARN" />
+        <logger name="org.hibernate" level="WARN" />
+        <logger name="org.hibernate.orm.jdbc.bind" level="DEBUG" />
+    </springProfile>
+
+    <!-- PROD PROFILE LOGGING -->
+    <springProfile name="prod">
+        <logger name="com.avinashee0012.hireflow" level="INFO" />
+        <logger name="org.springframework" level="WARN" />
+        <logger name="org.hibernate" level="WARN" />
+    </springProfile>
+
+</configuration>
