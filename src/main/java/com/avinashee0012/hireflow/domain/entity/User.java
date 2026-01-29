@@ -42,7 +42,7 @@ public class User {
     private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
-    private boolean isActive = true;
+    private boolean active = true;
 
     @Column(name = "organisation_id")
     private Long organisationId; // nullable by design
