@@ -8,12 +8,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "roles")
 @Getter
-@Setter
 @NoArgsConstructor
 public class Role {
     @Id
@@ -22,4 +20,8 @@ public class Role {
 
     @Column(nullable = false, unique = true, length = 50)
     private String name; // SUPPORT, ORGADMIN, RECRUITER, CANDIDATE
+
+    public Role(String roleName){
+        this.name = roleName;
+    }
 }

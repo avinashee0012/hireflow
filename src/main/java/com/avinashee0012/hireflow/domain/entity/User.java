@@ -15,12 +15,10 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
 @NoArgsConstructor
 public class User {
     @Id
@@ -34,11 +32,7 @@ public class User {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
@@ -46,4 +40,43 @@ public class User {
 
     @Column(name = "organisation_id")
     private Long organisationId; // nullable by design
+
+    public User(String email, String encrptedPassword, Long organisationId) {
+        this.email = email;
+        this.password = encrptedPassword;
+        this.organisationId = organisationId;
+    }
+
+    public void assignRole(Role role) {
+        if (role == null)
+            throw new IllegalArgumentException("Role cannot be null");
+        roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        if (role == null)
+            throw new IllegalArgumentException("Role cannot be null");
+        if (roles.size() == 1)
+            throw new IllegalStateException("User must have at least one role");
+        roles.remove(role);
+    }
+
+    public void activate() {
+        if (active)
+            throw new IllegalStateException("User is already active");
+        active = true;
+    }
+
+    public void deactivate() {
+        if (!active)
+            throw new IllegalStateException("User is already inactive");
+        active = false;
+    }
+
+    public void changePassword(String encryptedPassword) {
+        if (encryptedPassword == null || encryptedPassword.isBlank())
+            throw new IllegalArgumentException("Password must not be null or blank");
+        this.password = encryptedPassword;
+    }
+
 }
