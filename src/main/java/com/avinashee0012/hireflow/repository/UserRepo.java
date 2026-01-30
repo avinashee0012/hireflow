@@ -10,4 +10,5 @@ import com.avinashee0012.hireflow.domain.entity.User;
 @Repository
 public interface UserRepo extends JpaRepository<User, Long>{
     Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
 }
