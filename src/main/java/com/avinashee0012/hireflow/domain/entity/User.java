@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
-public class User {
+public class User extends Auditor{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
