@@ -55,7 +55,7 @@ public class Job extends Auditor{
 
     public void reopen(){
         if (jobStatus == JobStatus.OPEN) {
-            throw new IllegalStateException("Job is already closed");
+            throw new IllegalStateException("Job is already open");
         }
         this.jobStatus = JobStatus.OPEN;
     }
