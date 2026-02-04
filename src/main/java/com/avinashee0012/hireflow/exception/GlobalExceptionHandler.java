@@ -67,6 +67,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(new ErrorResponseDto(status, ex, request));
     }
 
+    @ExceptionHandler(CustomNotLoggedInException.class)
+    public ResponseEntity<ErrorResponseDto> handleCustomNotLoggedInException(Exception ex, HttpServletRequest request){
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        log.error("Not logged-in: {} [{} {}]", status.value(), request.getMethod(), request.getRequestURI(), ex);
+        return ResponseEntity.status(status).body(new ErrorResponseDto(status, ex, request));
+    }
+
+    @ExceptionHandler(CustomUnauthorizedException.class)
+    public ResponseEntity<ErrorResponseDto> handleCustomUnauthorizedException(Exception ex, HttpServletRequest request){
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        log.error("Not logged-in: {} [{} {}]", status.value(), request.getMethod(), request.getRequestURI(), ex);
+        return ResponseEntity.status(status).body(new ErrorResponseDto(status, ex, request));
+    }
+
     // Generic Errors
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGenericException(Exception ex, HttpServletRequest request){
