@@ -1,6 +1,7 @@
 package com.avinashee0012.hireflow.domain.entity;
 
 import com.avinashee0012.hireflow.domain.enums.JobStatus;
+import com.avinashee0012.hireflow.exception.CustomUnauthorizedEntityActionException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,5 +66,11 @@ public class Job extends Auditor{
             throw new IllegalArgumentException("Recruiter id cannot be null");
         }
         this.assignedRecruiterId = recruiterId;
+    }
+
+    public void updateDetails(String title, String description) {
+        if(jobStatus == JobStatus.CLOSED) throw new CustomUnauthorizedEntityActionException("Closed job can't be modified");
+        this.title = title;
+        this.description = description;
     }
 }
