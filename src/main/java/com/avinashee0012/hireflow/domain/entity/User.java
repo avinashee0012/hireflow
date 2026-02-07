@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
-public class User {
+public class User extends Auditor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -45,6 +45,10 @@ public class User {
         this.email = email;
         this.password = encrptedPassword;
         this.organisationId = organisationId;
+    }
+
+    public boolean hasRole(String roleName) {
+        return roles.stream().anyMatch(role -> role.getName().equals(roleName));
     }
 
     public void assignRole(Role role) {

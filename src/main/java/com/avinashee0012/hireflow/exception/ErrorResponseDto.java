@@ -21,7 +21,7 @@ public class ErrorResponseDto {
         status = httpStatus.value();
         error = httpStatus.name();
         message = ex.getMessage();
-        path = request.getRequestURI();
+        path = request.getMethod() + " " + request.getRequestURI();
         timestamp = LocalDateTime.now();
     }
 }

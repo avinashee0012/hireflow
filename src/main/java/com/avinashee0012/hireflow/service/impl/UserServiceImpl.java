@@ -6,6 +6,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.avinashee0012.hireflow.config.jwt.JwtService;
 import com.avinashee0012.hireflow.domain.entity.Role;
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
 
     @Override
+    @Transactional
     public UserResponseDto registerUser(UserRegisterRequestDto request) {
         if (userRepo.existsByEmail(request.getEmail()))
             throw new CustomDuplicateEntityException("User already exists: " + request.getEmail());
@@ -56,13 +58,8 @@ public class UserServiceImpl implements UserService {
         if (!user.isActive())
             throw new CustomInactiveUserException();
         String jwtToken = jwtService.generateToken(user);
-        return new JwtTokenResponseDto(
-                        jwtToken, 
-                        "Bearer", 
-                        jwtService.expiresIn(),
-                        user.getEmail(),
-                        user.getRoles().stream().map(Role::getName).collect(Collectors.toSet())
-                    );
+        return new JwtTokenResponseDto(jwtToken, "Bearer", jwtService.expiresIn(), user.getEmail(),
+                user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));
     }
 
 }
