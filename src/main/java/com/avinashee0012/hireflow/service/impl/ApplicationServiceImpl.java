@@ -66,7 +66,10 @@ public class ApplicationServiceImpl implements ApplicationService {
         if(user.hasRole("ORGADMIN")){ // ORGADMIN can update any application
             application = applicationRepo.findByIdAndOrganisationId(applicationId, user.getOrganisationId()).orElseThrow(() -> new CustomUnauthorizedEntityActionException("Application does not belong to organisation"));
         } else { // RECRUITER can only update applications for their own job
-            application = applicationRepo.findByIdAndJobAssignedRecruiterId(applicationId, user.getId()).orElseThrow(() -> new CustomUnauthorizedEntityActionException("Application not associated with recruiter"));
+            application = applicationRepo.findById(applicationId).orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + applicationId));
+            if(!jobRepo.existsByIdAndAssignedRecruiterId(application.getJobId(), user.getId())){
+                throw new CustomUnauthorizedEntityActionException("Application not associated with recruiter");
+            }
         }
         switch (request.getStatus()) {
             case SHORTLISTED:
