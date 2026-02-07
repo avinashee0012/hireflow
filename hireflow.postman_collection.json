@@ -212,6 +212,79 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "application",
+      "item": [
+        {
+          "name": "apply",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/api/applications/1",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "withdraw",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/api/applications/1/withdraw",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "1",
+                "withdraw"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update-status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"status\" : \"REJECTED\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/api/applications/2/status",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "2",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "auth": {
