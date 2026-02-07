@@ -1,6 +1,7 @@
 package com.avinashee0012.hireflow.domain.entity;
 
 import com.avinashee0012.hireflow.domain.enums.ApplicationStatus;
+import com.avinashee0012.hireflow.exception.CustomUnauthorizedEntityActionException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,8 +39,28 @@ public class Application extends Auditor{
     @Column(name = "status", nullable = false)
     private ApplicationStatus applicationStatus;
 
-    public Application(Long jobId, Long candidateId) {
+    public Application(Long jobId, Long candidateId, Long organisationId) {
         this.jobId = jobId;
         this.candidateId = candidateId;
+        this.organisationId = organisationId;
+        this.applicationStatus = ApplicationStatus.APPLIED;
+    }
+
+    public void withdraw(){
+        if(applicationStatus != ApplicationStatus.APPLIED)
+            throw new CustomUnauthorizedEntityActionException("Invalid transition");
+        this.applicationStatus = ApplicationStatus.WITHDRAWN;
+    }
+
+    public void shortlist(){
+        if(applicationStatus != ApplicationStatus.APPLIED)
+            throw new CustomUnauthorizedEntityActionException("Invalid transition");
+        this.applicationStatus = ApplicationStatus.SHORTLISTED;
+    }
+
+    public void reject(){
+        if(applicationStatus != ApplicationStatus.APPLIED)
+            throw new CustomUnauthorizedEntityActionException("Invalid lifecycle transition");
+        this.applicationStatus = ApplicationStatus.REJECTED;
     }
 }
