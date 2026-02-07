@@ -1,0 +1,84 @@
+package com.avinashee0012.hireflow.service.impl;
+
+import org.springframework.stereotype.Service;
+
+import com.avinashee0012.hireflow.config.security.CurrentUserProvider;
+import com.avinashee0012.hireflow.domain.entity.Application;
+import com.avinashee0012.hireflow.domain.entity.Job;
+import com.avinashee0012.hireflow.domain.entity.User;
+import com.avinashee0012.hireflow.domain.enums.JobStatus;
+import com.avinashee0012.hireflow.dto.request.ApplicationStatusUpdateRequestDto;
+import com.avinashee0012.hireflow.dto.response.ApplicationResponseDto;
+import com.avinashee0012.hireflow.exception.CustomDuplicateEntityException;
+import com.avinashee0012.hireflow.exception.CustomUnauthorizedEntityActionException;
+import com.avinashee0012.hireflow.exception.CustomUnauthorizedException;
+import com.avinashee0012.hireflow.repository.ApplicationRepo;
+import com.avinashee0012.hireflow.repository.JobRepo;
+import com.avinashee0012.hireflow.service.ApplicationService;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+
+@Service
+@AllArgsConstructor
+public class ApplicationServiceImpl implements ApplicationService {
+    
+    private final ApplicationRepo applicationRepo;
+    private final JobRepo jobRepo;
+    private final CurrentUserProvider currentUserProvider;
+
+    @Override
+    @Transactional
+    public ApplicationResponseDto apply(Long jobId) {
+        User user = currentUserProvider.getAuthenticatedUser();
+        boolean allowed = user.hasRole("CANDIDATE");
+        if (!allowed)
+            throw new CustomUnauthorizedException("Only CANDIDATE can apply to jobs");
+        Job job = jobRepo.findById(jobId).orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
+        if(job.getJobStatus() != JobStatus.OPEN) throw new IllegalStateException("Can only apply to OPEN jobs");
+        boolean alreadyApplied = applicationRepo.existsByJobIdAndCandidateId(jobId, user.getId());
+        if(alreadyApplied) throw new CustomDuplicateEntityException("Already applied to this job");
+        Application application = new Application(jobId, user.getId(), job.getOrganisationId());
+        Application savedApplication = applicationRepo.save(application);
+        return new ApplicationResponseDto(savedApplication.getId(), jobId, savedApplication.getApplicationStatus());
+    }
+
+    @Override
+    @Transactional
+    public void withdraw(Long applicationId) {
+        User user = currentUserProvider.getAuthenticatedUser();
+        boolean allowed = user.hasRole("CANDIDATE");
+        if (!allowed)
+            throw new CustomUnauthorizedException("Only CANDIDATE can withdraw their application");
+        Application application = applicationRepo.findByIdAndCandidateId(applicationId, user.getId()).orElseThrow(() -> new EntityNotFoundException("Application not found with id " + applicationId + " for this user"));
+        application.withdraw();
+    }
+
+    @Override
+    @Transactional
+    public ApplicationResponseDto updateStatus(Long applicationId, ApplicationStatusUpdateRequestDto request) {
+        User user = currentUserProvider.getAuthenticatedUser();
+        boolean allowed = user.hasRole("RECRUITER") || user.hasRole("ORGADMIN");
+        if (!allowed)
+            throw new CustomUnauthorizedException("Only RECRUITER or ORGADMIN can update status");
+        Application application;
+        if(user.hasRole("ORGADMIN")){ // ORGADMIN can update any application
+            application = applicationRepo.findByIdAndOrganisationId(applicationId, user.getOrganisationId()).orElseThrow(() -> new CustomUnauthorizedEntityActionException("Application does not belong to organisation"));
+        } else { // RECRUITER can only update applications for their own job
+            application = applicationRepo.findByIdAndJobAssignedRecruiterId(applicationId, user.getId()).orElseThrow(() -> new CustomUnauthorizedEntityActionException("Application not associated with recruiter"));
+        }
+        switch (request.getStatus()) {
+            case SHORTLISTED:
+                application.shortlist();
+                break;
+            case REJECTED:
+                application.reject();
+                break;
+            default:
+                throw new CustomUnauthorizedEntityActionException("Invalid transition status");
+        }
+        return new ApplicationResponseDto(applicationId, application.getJobId(), application.getApplicationStatus());
+    }
+
+}
