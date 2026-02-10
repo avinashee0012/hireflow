@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.avinashee0012.hireflow.config.security.CurrentUserProvider;
+import com.avinashee0012.hireflow.config.security.OrganisationAccessGuard;
 import com.avinashee0012.hireflow.domain.entity.Job;
 import com.avinashee0012.hireflow.domain.entity.User;
 import com.avinashee0012.hireflow.domain.enums.JobStatus;
@@ -31,10 +32,12 @@ public class JobServiceImpl implements JobService{
     private final JobRepo jobRepo;
     private final CurrentUserProvider currentUserProvider;
     private final JobMapper jobMapper;
+    private final OrganisationAccessGuard organisationAccessGuard;
 
     @Override
     @Transactional public JobResponseDto createJob(JobRequestDto request){
         User user = currentUserProvider.getAuthenticatedUser();
+        organisationAccessGuard.ensureActiveOrganisation(user);
         boolean allowed = user.hasRole("RECRUITER") || user.hasRole("ORGADMIN");
         if (!allowed)
             throw new CustomUnauthorizedException("User cannot create jobs");
@@ -45,6 +48,7 @@ public class JobServiceImpl implements JobService{
     @Override
     @Transactional public void closeJob(Long jobId){
         User user = currentUserProvider.getAuthenticatedUser();
+        organisationAccessGuard.ensureActiveOrganisation(user);
         Job job = jobRepo.findByIdAndAssignedRecruiterId(jobId, user.getId())
                 .orElseThrow(() -> new CustomUnauthorizedEntityActionException("Job not assigned to this recruiter"));
         job.close();
@@ -53,6 +57,7 @@ public class JobServiceImpl implements JobService{
     @Override
     @Transactional public void reopenJob(Long jobId){
         User user = currentUserProvider.getAuthenticatedUser();
+        organisationAccessGuard.ensureActiveOrganisation(user);
         if (!user.hasRole("ORGADMIN"))
             throw new CustomUnauthorizedException("Only ORGADMIN can reopen jobs");
         Job job = jobRepo.findByIdAndOrganisationId(jobId, user.getOrganisationId())
@@ -78,6 +83,7 @@ public class JobServiceImpl implements JobService{
     @Override
     @Transactional public JobResponseDto updateJob(Long jobId, JobRequestDto request){
         User user = currentUserProvider.getAuthenticatedUser();
+        organisationAccessGuard.ensureActiveOrganisation(user);
         Job job;
         if (user.hasRole("ORGADMIN")){
             job = jobRepo.findByIdAndOrganisationId(jobId, user.getOrganisationId())
