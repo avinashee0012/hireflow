@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
-public class User extends Auditor {
+public class User extends Auditor{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -41,23 +41,23 @@ public class User extends Auditor {
     @Column(name = "organisation_id")
     private Long organisationId; // nullable by design
 
-    public User(String email, String encrptedPassword, Long organisationId) {
+    public User(String email, String encrptedPassword, Long organisationId){
         this.email = email;
         this.password = encrptedPassword;
         this.organisationId = organisationId;
     }
 
-    public boolean hasRole(String roleName) {
+    public boolean hasRole(String roleName){
         return roles.stream().anyMatch(role -> role.getName().equals(roleName));
     }
 
-    public void assignRole(Role role) {
+    public void assignRole(Role role){
         if (role == null)
             throw new IllegalArgumentException("Role cannot be null");
         roles.add(role);
     }
 
-    public void removeRole(Role role) {
+    public void removeRole(Role role){
         if (role == null)
             throw new IllegalArgumentException("Role cannot be null");
         if (roles.size() == 1)
@@ -65,22 +65,28 @@ public class User extends Auditor {
         roles.remove(role);
     }
 
-    public void activate() {
+    public void activate(){
         if (active)
             throw new IllegalStateException("User is already active");
         active = true;
     }
 
-    public void deactivate() {
+    public void deactivate(){
         if (!active)
             throw new IllegalStateException("User is already inactive");
         active = false;
     }
 
-    public void changePassword(String encryptedPassword) {
+    public void changePassword(String encryptedPassword){
         if (encryptedPassword == null || encryptedPassword.isBlank())
             throw new IllegalArgumentException("Password must not be null or blank");
         this.password = encryptedPassword;
+    }
+
+    public void assignOrganisation(Long organisationId){
+        if(this.organisationId != null)
+            throw new IllegalStateException("User already belongs to an organisation");
+        this.organisationId = organisationId;
     }
 
 }
