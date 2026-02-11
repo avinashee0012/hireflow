@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.avinashee0012.hireflow.config.security.CurrentUserProvider;
+import com.avinashee0012.hireflow.config.security.OrganisationAccessGuard;
 import com.avinashee0012.hireflow.domain.entity.Application;
 import com.avinashee0012.hireflow.domain.entity.Job;
 import com.avinashee0012.hireflow.domain.entity.User;
@@ -35,10 +36,12 @@ public class ApplicationServiceImpl implements ApplicationService{
     private final JobRepo jobRepo;
     private final CurrentUserProvider currentUserProvider;
     private final ApplicationMapper applicationMapper;
+    private final OrganisationAccessGuard organisationAccessGuard;
 
     @Override
     @Transactional public ApplicationResponseDto apply(Long jobId){
         User user = currentUserProvider.getAuthenticatedUser();
+        organisationAccessGuard.ensureActiveOrganisation(user);
         boolean allowed = user.hasRole("CANDIDATE");
         if (!allowed)
             throw new CustomUnauthorizedException("Only CANDIDATE can apply to jobs");
@@ -57,6 +60,7 @@ public class ApplicationServiceImpl implements ApplicationService{
     @Override
     @Transactional public void withdraw(Long applicationId){
         User user = currentUserProvider.getAuthenticatedUser();
+        organisationAccessGuard.ensureActiveOrganisation(user);
         boolean allowed = user.hasRole("CANDIDATE");
         if (!allowed)
             throw new CustomUnauthorizedException("Only CANDIDATE can withdraw their application");
@@ -69,6 +73,7 @@ public class ApplicationServiceImpl implements ApplicationService{
     @Transactional public ApplicationResponseDto updateStatus(Long applicationId,
             ApplicationStatusUpdateRequestDto request){
         User user = currentUserProvider.getAuthenticatedUser();
+        organisationAccessGuard.ensureActiveOrganisation(user);
         boolean allowed = user.hasRole("RECRUITER") || user.hasRole("ORGADMIN");
         if (!allowed)
             throw new CustomUnauthorizedException("Only RECRUITER or ORGADMIN can update status");
