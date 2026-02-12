@@ -1,5 +1,7 @@
 package com.avinashee0012.hireflow.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +28,7 @@ import lombok.AllArgsConstructor;
 @Repository
 @AllArgsConstructor
 public class JobServiceImpl implements JobService{
-
+    private static final Logger log = LoggerFactory.getLogger(JobServiceImpl.class);
     private static int PAGE_SIZE = 10;
 
     private final JobRepo jobRepo;
@@ -42,7 +44,10 @@ public class JobServiceImpl implements JobService{
         if (!allowed)
             throw new CustomUnauthorizedException("User cannot create jobs");
         Job job = new Job(request.getTitle(), request.getDescription(), user.getOrganisationId(), user.getId());
-        return jobMapper.toResponse(jobRepo.save(job));
+        Job savedJob = jobRepo.save(job);
+        log.info("Job created: jobId={}, orgId={}, recruiterId={}", savedJob.getId(), savedJob.getOrganisationId(),
+                user.getId());
+        return jobMapper.toResponse(savedJob);
     }
 
     @Override
@@ -52,6 +57,7 @@ public class JobServiceImpl implements JobService{
         Job job = jobRepo.findByIdAndAssignedRecruiterId(jobId, user.getId())
                 .orElseThrow(() -> new CustomUnauthorizedEntityActionException("Job not assigned to this recruiter"));
         job.close();
+        log.info("Job closed: jobId={}, recruiterId={}", jobId, user.getId());
     }
 
     @Override
@@ -63,6 +69,7 @@ public class JobServiceImpl implements JobService{
         Job job = jobRepo.findByIdAndOrganisationId(jobId, user.getOrganisationId())
                 .orElseThrow(() -> new EntityNotFoundException("Job not found in organisation"));
         job.reopen();
+        log.info("Job reopened: jobId={}, orgAdminId={}", jobId, user.getId());
     }
 
     @Override public JobResponseDto getJobById(Long jobId){
@@ -95,6 +102,7 @@ public class JobServiceImpl implements JobService{
             throw new CustomUnauthorizedException("Access denied");
         }
         job.updateDetails(request.getTitle(), request.getDescription());
+        log.info("Job updated: jobId={}, updatedByUserId={}", jobId, user.getId());
         return jobMapper.toResponse(job);
     }
 
