@@ -35,6 +35,8 @@ public class Organisation extends Auditor{
     private Long orgAdminUserId;
 
     public Organisation(String name, Long orgAdminUserId) {
+        if(name == null || name.isBlank()) throw new IllegalArgumentException("Invalid organisation name");
+        if(orgAdminUserId == null) throw new IllegalArgumentException("Invalid org admin id");
         this.name = name;
         this.orgAdminUserId = orgAdminUserId;
         this.status = OrganisationStatus.ACTIVE;
