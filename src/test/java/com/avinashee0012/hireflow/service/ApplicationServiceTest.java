@@ -24,6 +24,7 @@ import com.avinashee0012.hireflow.domain.entity.User;
 import com.avinashee0012.hireflow.domain.enums.ApplicationStatus;
 import com.avinashee0012.hireflow.dto.response.ApplicationResponseDto;
 import com.avinashee0012.hireflow.exception.CustomDuplicateEntityException;
+import com.avinashee0012.hireflow.exception.CustomUnauthorizedEntityActionException;
 import com.avinashee0012.hireflow.exception.CustomUnauthorizedException;
 import com.avinashee0012.hireflow.mapper.ApplicationMapper;
 import com.avinashee0012.hireflow.repository.ApplicationRepo;
@@ -115,7 +116,7 @@ public class ApplicationServiceTest{
         verify(applicationRepo).save(any());
     }
 
-    @Test void shouldThrowIfUserNotCandidate(){
+    @Test void shouldThrowOnApplyIfUserNotCandidate(){
         when(currentUserProvider.getAuthenticatedUser()).thenReturn(recruiterUser);
         doNothing().when(organisationAccessGuard).ensureActiveOrganisation(recruiterUser);
 
@@ -152,4 +153,46 @@ public class ApplicationServiceTest{
 
         verify(applicationRepo, never()).save(any());
     }
+
+    @Test void shouldWithdrawApplicationSuccessfully(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(candidateUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(candidateUser);
+        when(applicationRepo.findByIdAndCandidateId(APPLICATION_ID, candidateUser.getId()))
+                .thenReturn(Optional.of(application));
+
+        applicationService.withdraw(APPLICATION_ID);
+
+        assertEquals(ApplicationStatus.WITHDRAWN, application.getApplicationStatus());
+
+        verify(applicationRepo).findByIdAndCandidateId(APPLICATION_ID, candidateUser.getId());
+    }
+
+    @Test void shouldThrowOnWithdrawIfUserNotCandidate(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(recruiterUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(recruiterUser);
+
+        assertThrows(CustomUnauthorizedException.class, () -> applicationService.withdraw(APPLICATION_ID));
+
+        verify(applicationRepo, never()).findByIdAndCandidateId(any(), any());
+    }
+
+    @Test void shouldThrowIfApplicationNotFound(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(candidateUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(candidateUser);
+        when(applicationRepo.findByIdAndCandidateId(APPLICATION_ID, candidateUser.getId()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> applicationService.withdraw(APPLICATION_ID));
+    }
+
+    @Test void shouldThrowIfAlreadyWithdrawn(){
+        application.withdraw(); // already withdrawn
+
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(candidateUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(candidateUser);
+        when(applicationRepo.findByIdAndCandidateId(APPLICATION_ID, candidateUser.getId())).thenReturn(Optional.of(application));
+
+        assertThrows(CustomUnauthorizedEntityActionException.class, () -> applicationService.withdraw(APPLICATION_ID));
+    }
+    
 }
