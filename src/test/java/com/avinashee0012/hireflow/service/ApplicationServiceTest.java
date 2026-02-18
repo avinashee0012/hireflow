@@ -22,6 +22,7 @@ import com.avinashee0012.hireflow.domain.entity.Organisation;
 import com.avinashee0012.hireflow.domain.entity.Role;
 import com.avinashee0012.hireflow.domain.entity.User;
 import com.avinashee0012.hireflow.domain.enums.ApplicationStatus;
+import com.avinashee0012.hireflow.dto.request.ApplicationStatusUpdateRequestDto;
 import com.avinashee0012.hireflow.dto.response.ApplicationResponseDto;
 import com.avinashee0012.hireflow.exception.CustomDuplicateEntityException;
 import com.avinashee0012.hireflow.exception.CustomUnauthorizedEntityActionException;
@@ -190,9 +191,109 @@ public class ApplicationServiceTest{
 
         when(currentUserProvider.getAuthenticatedUser()).thenReturn(candidateUser);
         doNothing().when(organisationAccessGuard).ensureActiveOrganisation(candidateUser);
-        when(applicationRepo.findByIdAndCandidateId(APPLICATION_ID, candidateUser.getId())).thenReturn(Optional.of(application));
+        when(applicationRepo.findByIdAndCandidateId(APPLICATION_ID, candidateUser.getId()))
+                .thenReturn(Optional.of(application));
 
         assertThrows(CustomUnauthorizedEntityActionException.class, () -> applicationService.withdraw(APPLICATION_ID));
     }
-    
+
+    @Test void shouldThrowIfUserNotRecruiterOrOrgAdmin(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(candidateUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(candidateUser);
+
+        ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
+        request.setStatus(ApplicationStatus.SHORTLISTED);
+
+        assertThrows(CustomUnauthorizedException.class, () -> applicationService.updateStatus(APPLICATION_ID, request));
+    }
+
+    @Test void shouldUpdateStatusForOrgAdmin(){
+        orgAdminUser.assignOrganisation(ORG_ID);
+
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(orgAdminUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(orgAdminUser);
+        when(applicationRepo.findByIdAndOrganisationId(APPLICATION_ID, ORG_ID)).thenReturn(Optional.of(application));
+
+        ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
+        request.setStatus(ApplicationStatus.SHORTLISTED);
+
+        when(applicationMapper.toResponse(application))
+                .thenReturn(new ApplicationResponseDto(APPLICATION_ID, JOB_ID, ApplicationStatus.SHORTLISTED));
+
+        ApplicationResponseDto response = applicationService.updateStatus(APPLICATION_ID, request);
+
+        assertEquals(ApplicationStatus.SHORTLISTED, application.getApplicationStatus());
+        assertEquals(ApplicationStatus.SHORTLISTED, response.getStatus());
+    }
+
+    @Test void shouldThrowIfApplicationNotInOrgForAdmin(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(orgAdminUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(orgAdminUser);
+        when(applicationRepo.findByIdAndOrganisationId(APPLICATION_ID, orgAdminUser.getOrganisationId()))
+                .thenReturn(Optional.empty());
+
+        ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
+        request.setStatus(ApplicationStatus.SHORTLISTED);
+
+        assertThrows(CustomUnauthorizedEntityActionException.class,
+                () -> applicationService.updateStatus(APPLICATION_ID, request));
+    }
+
+    @Test void shouldUpdateStatusForRecruiter(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(recruiterUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(recruiterUser);
+        when(applicationRepo.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(jobRepo.existsByIdAndAssignedRecruiterId(JOB_ID, recruiterUser.getId())).thenReturn(true);
+
+        ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
+        request.setStatus(ApplicationStatus.REJECTED);
+
+        when(applicationMapper.toResponse(application))
+                .thenReturn(new ApplicationResponseDto(APPLICATION_ID, JOB_ID, ApplicationStatus.REJECTED));
+
+        ApplicationResponseDto response = applicationService.updateStatus(APPLICATION_ID, request);
+
+        assertEquals(ApplicationStatus.REJECTED, application.getApplicationStatus());
+        assertEquals(ApplicationStatus.REJECTED, response.getStatus());
+    }
+
+    @Test void shouldThrowIfRecruiterNotAssignedToJob(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(recruiterUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(recruiterUser);
+        when(applicationRepo.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(jobRepo.existsByIdAndAssignedRecruiterId(JOB_ID, recruiterUser.getId())).thenReturn(false);
+
+        ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
+        request.setStatus(ApplicationStatus.SHORTLISTED);
+
+        assertThrows(CustomUnauthorizedEntityActionException.class,
+                () -> applicationService.updateStatus(APPLICATION_ID, request));
+    }
+
+    @Test void shouldThrowIfInvalidTransitionStatus(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(orgAdminUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(orgAdminUser);
+        when(applicationRepo.findByIdAndOrganisationId(APPLICATION_ID, orgAdminUser.getOrganisationId()))
+                .thenReturn(Optional.of(application));
+
+        ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
+        request.setStatus(ApplicationStatus.APPLIED); // invalid
+
+        assertThrows(CustomUnauthorizedEntityActionException.class,
+                () -> applicationService.updateStatus(APPLICATION_ID, request));
+    }
+
+    @Test void shouldThrowIfIllegalDomainTransition(){
+        application.reject(); // already rejected
+
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(orgAdminUser);
+        doNothing().when(organisationAccessGuard).ensureActiveOrganisation(orgAdminUser);
+        when(applicationRepo.findByIdAndOrganisationId(APPLICATION_ID, orgAdminUser.getOrganisationId())).thenReturn(Optional.of(application));
+
+        ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
+        request.setStatus(ApplicationStatus.REJECTED);
+
+        assertThrows(CustomUnauthorizedEntityActionException.class, () -> applicationService.updateStatus(APPLICATION_ID, request));
+    }
+
 }
