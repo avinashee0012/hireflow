@@ -4,14 +4,20 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.avinashee0012.hireflow.config.security.CurrentUserProvider;
@@ -288,12 +294,94 @@ public class ApplicationServiceTest{
 
         when(currentUserProvider.getAuthenticatedUser()).thenReturn(orgAdminUser);
         doNothing().when(organisationAccessGuard).ensureActiveOrganisation(orgAdminUser);
-        when(applicationRepo.findByIdAndOrganisationId(APPLICATION_ID, orgAdminUser.getOrganisationId())).thenReturn(Optional.of(application));
+        when(applicationRepo.findByIdAndOrganisationId(APPLICATION_ID, orgAdminUser.getOrganisationId()))
+                .thenReturn(Optional.of(application));
 
         ApplicationStatusUpdateRequestDto request = new ApplicationStatusUpdateRequestDto();
         request.setStatus(ApplicationStatus.REJECTED);
 
-        assertThrows(CustomUnauthorizedEntityActionException.class, () -> applicationService.updateStatus(APPLICATION_ID, request));
+        assertThrows(CustomUnauthorizedEntityActionException.class,
+                () -> applicationService.updateStatus(APPLICATION_ID, request));
+    }
+
+    @Test void shouldReturnApplicationsForCandidate(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(candidateUser);
+
+        Page<Application> page = new PageImpl<>(List.of(application));
+
+        when(applicationRepo.findByCandidateId(eq(candidateUser.getId()), any())).thenReturn(page);
+        when(applicationMapper.toResponse(application))
+                .thenReturn(new ApplicationResponseDto(APPLICATION_ID, JOB_ID, ApplicationStatus.APPLIED));
+
+        Page<ApplicationResponseDto> result = applicationService.getApplications(0, "createdAt", "desc");
+
+        assertEquals(1, result.getContent().size());
+
+        verify(applicationRepo).findByCandidateId(eq(candidateUser.getId()), any());
+    }
+
+    @Test void shouldReturnApplicationsForRecruiter(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(recruiterUser);
+
+        List<Long> jobIds = List.of(JOB_ID, JOB_ID + 1);
+
+        when(jobRepo.findJobIdsByAssignedRecruiterId(recruiterUser.getId())).thenReturn(jobIds);
+
+        Page<Application> page = new PageImpl<>(List.of(application));
+
+        when(applicationRepo.findByJobIdIn(eq(jobIds), any())).thenReturn(page);
+        when(applicationMapper.toResponse(application))
+                .thenReturn(new ApplicationResponseDto(APPLICATION_ID, JOB_ID, ApplicationStatus.APPLIED));
+
+        Page<ApplicationResponseDto> result = applicationService.getApplications(0, "createdAt", "asc");
+
+        assertEquals(1, result.getContent().size());
+
+        verify(jobRepo).findJobIdsByAssignedRecruiterId(recruiterUser.getId());
+        verify(applicationRepo).findByJobIdIn(eq(jobIds), any());
+    }
+
+    @Test void shouldReturnApplicationsForOrgAdmin(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(orgAdminUser);
+
+        Page<Application> page = new PageImpl<>(List.of(application));
+
+        when(applicationRepo.findByOrganisationId(eq(orgAdminUser.getOrganisationId()), any())).thenReturn(page);
+        when(applicationMapper.toResponse(application))
+                .thenReturn(new ApplicationResponseDto(APPLICATION_ID, JOB_ID, ApplicationStatus.APPLIED));
+
+        Page<ApplicationResponseDto> result = applicationService.getApplications(0, "createdAt", "desc");
+
+        assertEquals(1, result.getContent().size());
+
+        verify(applicationRepo).findByOrganisationId(eq(orgAdminUser.getOrganisationId()), any());
+    }
+
+    @Test void shouldThrowIfUserUnauthorized(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(supportUser);
+
+        assertThrows(CustomUnauthorizedException.class,
+                () -> applicationService.getApplications(0, "createdAt", "desc"));
+    }
+
+    @Test void shouldPassCorrectPageable(){
+        when(currentUserProvider.getAuthenticatedUser()).thenReturn(candidateUser);
+        when(applicationRepo.findByCandidateId(eq(candidateUser.getId()), any())).thenReturn(Page.empty());
+
+        applicationService.getApplications(1, "createdAt", "asc");
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+
+        verify(applicationRepo).findByCandidateId(eq(candidateUser.getId()), pageableCaptor.capture());
+
+        Pageable pageable = pageableCaptor.getValue();
+
+        assertEquals(1, pageable.getPageNumber());
+        assertEquals(10, pageable.getPageSize());
+
+        Sort.Order order = pageable.getSort().getOrderFor("createdAt");
+        assertNotNull(order, "Sort order for 'createdAt' should not be null");
+        assertEquals(Sort.Direction.ASC, order.getDirection());
     }
 
 }
