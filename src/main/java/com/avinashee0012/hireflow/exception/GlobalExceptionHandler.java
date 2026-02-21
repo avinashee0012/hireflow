@@ -3,12 +3,12 @@ package com.avinashee0012.hireflow.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     // Validation Errors
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponseDto> handleMethodArgumentNotValidException(Exception ex, HttpServletRequest request){
         HttpStatus status = HttpStatus.BAD_REQUEST;
         log.warn("Validation failed: {} [{} {}] - {}", status.value(), request.getMethod(), request.getRequestURI(), ex.getMessage());
