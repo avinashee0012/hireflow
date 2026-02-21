@@ -3,6 +3,7 @@ package com.avinashee0012.hireflow.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -74,10 +75,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(new ErrorResponseDto(status, ex, request));
     }
 
-    @ExceptionHandler(CustomUnauthorizedException.class)
+    @ExceptionHandler({CustomUnauthorizedException.class, AuthorizationDeniedException.class})
     public ResponseEntity<ErrorResponseDto> handleCustomUnauthorizedException(Exception ex, HttpServletRequest request){
         HttpStatus status = HttpStatus.UNAUTHORIZED;
-        log.error("Not logged-in: {} [{} {}]", status.value(), request.getMethod(), request.getRequestURI(), ex);
+        log.error("Unauthorized: {} [{} {}]", status.value(), request.getMethod(), request.getRequestURI(), ex);
         return ResponseEntity.status(status).body(new ErrorResponseDto(status, ex, request));
     }
 
