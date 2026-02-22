@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler {
     }
 
     // Validation Errors
-    @ExceptionHandler(ValidationException.class)
+    @ExceptionHandler({ValidationException.class, MethodArgumentNotValidException.class, IllegalArgumentException.class})
     public ResponseEntity<ErrorResponseDto> handleMethodArgumentNotValidException(Exception ex, HttpServletRequest request){
         HttpStatus status = HttpStatus.BAD_REQUEST;
         log.warn("Validation failed: {} [{} {}] - {}", status.value(), request.getMethod(), request.getRequestURI(), ex.getMessage());
@@ -47,7 +48,7 @@ public class GlobalExceptionHandler {
     }
 
     // Auth & Security Errors
-    @ExceptionHandler(BadCredentialsException.class)
+    @ExceptionHandler({BadCredentialsException.class})
     public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(Exception ex, HttpServletRequest request){
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         log.warn("Authentication failed: {} [{} {}]", status.value(), request.getMethod(), request.getRequestURI());
