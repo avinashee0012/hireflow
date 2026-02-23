@@ -1,5 +1,7 @@
 package com.avinashee0012.hireflow.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.avinashee0012.hireflow.config.security.CurrentUserProvider;
@@ -23,6 +25,7 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class OrganisationServiceImpl implements OrganisationService{
+    private static final Logger log = LoggerFactory.getLogger(OrganisationServiceImpl.class);
 
     private final OrganisationRepo organisationRepo;
     private final UserRepo userRepo;
@@ -49,6 +52,8 @@ public class OrganisationServiceImpl implements OrganisationService{
         Organisation organisation = new Organisation(request.getName(), orgAdmin.getId());
         Organisation savedOrganisation = organisationRepo.save(organisation);
         orgAdmin.assignOrganisation(savedOrganisation.getId());
+        log.info("Organisation created: orgId={}, name={}, orgAdminId={}", savedOrganisation.getId(),
+                savedOrganisation.getName(), orgAdmin.getId());
         return organisationMapper.toResponse(savedOrganisation);
     }
 
@@ -60,6 +65,7 @@ public class OrganisationServiceImpl implements OrganisationService{
         Organisation organisation = organisationRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found with id: " + orgId));
         organisation.suspend();
+        log.info("Organisation suspended: orgId={}", orgId);
     }
 
     @Override
@@ -70,6 +76,7 @@ public class OrganisationServiceImpl implements OrganisationService{
         Organisation organisation = organisationRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found with id: " + orgId));
         organisation.activate();
+        log.info("Organisation activated: orgId={}", orgId);
     }
 
     @Override public OrganisationResponseDto getOrganisation(Long orgId){
@@ -78,7 +85,6 @@ public class OrganisationServiceImpl implements OrganisationService{
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found with id: " + orgId));
         if (actor.hasRole("SUPPORT"))
             return organisationMapper.toResponse(organisation);
-
         if (actor.hasRole("ORGADMIN")){
             if (!orgId.equals(actor.getOrganisationId()))
                 throw new CustomUnauthorizedException("ORGADMIN can access only their organisation");

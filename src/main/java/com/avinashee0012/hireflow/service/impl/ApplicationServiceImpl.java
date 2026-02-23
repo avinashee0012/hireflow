@@ -1,5 +1,7 @@
 package com.avinashee0012.hireflow.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +31,7 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class ApplicationServiceImpl implements ApplicationService{
-
+    private static final Logger log = LoggerFactory.getLogger(ApplicationServiceImpl.class);
     private static int PAGE_SIZE = 10;
 
     private final ApplicationRepo applicationRepo;
@@ -54,6 +56,8 @@ public class ApplicationServiceImpl implements ApplicationService{
             throw new CustomDuplicateEntityException("Already applied to this job");
         Application application = new Application(jobId, user.getId(), job.getOrganisationId());
         Application savedApplication = applicationRepo.save(application);
+        log.info("Application submitted: applicationId={}, jobId={}, candidateId={}", savedApplication.getId(), jobId,
+                user.getId());
         return new ApplicationResponseDto(savedApplication.getId(), jobId, savedApplication.getApplicationStatus());
     }
 
@@ -67,6 +71,7 @@ public class ApplicationServiceImpl implements ApplicationService{
         Application application = applicationRepo.findByIdAndCandidateId(applicationId, user.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Application not found with id " + applicationId + " for this user"));
         application.withdraw();
+        log.info("Application withdrawn: applicationId={}, candidateId={}", applicationId, user.getId());
     }
 
     @Override
@@ -99,7 +104,9 @@ public class ApplicationServiceImpl implements ApplicationService{
             default:
                 throw new CustomUnauthorizedEntityActionException("Invalid transition status");
         }
-        return new ApplicationResponseDto(applicationId, application.getJobId(), application.getApplicationStatus());
+        log.info("Application status updated: applicationId={}, newStatus={}, updatedByUserId={}", applicationId,
+                request.getStatus(), user.getId());
+        return applicationMapper.toResponse(application);
     }
 
     @Override public Page<ApplicationResponseDto> getApplications(int page, String sortBy, String direction){
