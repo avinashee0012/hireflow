@@ -25,7 +25,9 @@ jobs:
           cache: maven
 
       - name: Build and run tests
-        run: mvn clean verify
+          run: mvn -B clean verify --no-transfer-progress
+          env:
+            SPRING_PROFILES_ACTIVE: test
 
       - name: Upload test results
         if: always()
