@@ -1,0 +1,16 @@
+# build artifacts
+target/
+*.jar
+
+# dependency folders
+node_modules/
+
+# version control and IDE files
+.git/
+.gitignore
+.github/
+.idea/
+*.iml
+
+# documentation (to save build cache)
+README.md

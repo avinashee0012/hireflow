@@ -1,5 +1,7 @@
 # HireFlow – Recruitment & Job Application Backend System
 
+![CI](https://github.com/avinashee0012/hireflow/actions/workflows/ci.yml/badge.svg)
+
 #### Companies struggle to manage job postings, candidate applications, hiring stages, and role-based access in a structured, auditable way. HireFlow provides a backend system to manage job lifecycles, candidate pipelines, and secure role-based access.
 
 ## Tracker
