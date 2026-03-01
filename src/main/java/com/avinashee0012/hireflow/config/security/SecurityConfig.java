@@ -28,7 +28,8 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .httpBasic(basicAuth -> basicAuth.disable())
                 .authorizeHttpRequests(auth -> auth 
-                    .requestMatchers( "/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                    .requestMatchers( "/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/actuator/health").permitAll()
+                    .requestMatchers("/actuator/info").hasRole("SUPPORT")
                     .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // STATELESS for JWT
