@@ -1,10 +1,13 @@
 # HireFlow – Recruitment & Job Application Backend System
 
-![CI](https://github.com/avinashee0012/hireflow/actions/workflows/ci.yml/badge.svg)
+<p align="center">
+  <img src="https://github.com/avinashee0012/hireflow/actions/workflows/ci.yml/badge.svg" />
+</p>
 
 #### Companies struggle to manage job postings, candidate applications, hiring stages, and role-based access in a structured, auditable way. HireFlow provides a backend system to manage job lifecycles, candidate pipelines, and secure role-based access.
 
 ## Tracker
+- **[Release v0.7.0](https://github.com/avinashee0012/hireflow/pull/25)** - Beta release: CI stabilization & actuator integration
 - **[Release v0.6.0](https://github.com/avinashee0012/hireflow/pull/19)** - Beta release: CI pipeline & dockerization
 - **[Release v0.5.0](https://github.com/avinashee0012/hireflow/pull/15)** - Beta release: admin module added
 - **[Release v0.4.0](https://github.com/avinashee0012/hireflow/pull/13)** - Beta release: unit testing layer added
@@ -12,7 +15,7 @@
 - **[Release v0.2.0](https://github.com/avinashee0012/hireflow/pull/7)** - Beta release: job and application workflow
 - **[Release v0.1.0](https://github.com/avinashee0012/hireflow/pull/2)** - Alpha release: authentication and user access
 
-## Current Status (v0.6.0 – Beta)
+## Current Status (v0.7.0 – Beta)
 
 ### Core Features
 
@@ -25,6 +28,7 @@
 - Multi-tenancy enforcement via Organisation scoping
 - System-level Admin module for user governance
 - Correlation ID logging and structured error responses
+- Actuator endpoints with appropriate security
 
 ### Architecture
 
@@ -36,19 +40,17 @@
 * Profile-based configuration (dev, test, prod)
 * Environment-driven secrets management
 
-### New in v0.6.0
+### New in v0.7.0
+This release promotes infrastructure enhancements and observability improvements to production. It stabilizes the CI pipeline with proper test profile activation and placeholder configuration while introducing Spring Boot Actuator for application health monitoring.
 
-* GitHub Actions CI pipeline
-    - Automated build validation on PRs (develop, main)
-    - Full test suite execution with test profile (H2 in-memory DB)
-* Docker image build verification
-* Multi-stage Docker build
-* CI badge integration in README
+1. CI Stabilization
+2. Actuator Integration
+3. Profile separation (`dev`, `test`, `prod`)
 
 ## Next Milestone
 
-* Actuator endpoints (*planned next*)
-* Integration tests (*deferred*)
+* Integration tests (*planned next*)
+* API Documentation (OpenAPI / Swagger)
 
 
 

@@ -25,9 +25,7 @@ jobs:
           cache: maven
 
       - name: Build and run tests
-          run: mvn -B clean verify --no-transfer-progress
-          env:
-            SPRING_PROFILES_ACTIVE: test
+        run: mvn -B clean verify --no-transfer-progress -Dspring.profiles.active=test
 
       - name: Upload test results
         if: always()
@@ -35,6 +33,6 @@ jobs:
         with:
           name: test-results
           path: target/surefire-reports/
-      
+
       - name: Build Docker image
         run: docker build -t hireflow:ci .
