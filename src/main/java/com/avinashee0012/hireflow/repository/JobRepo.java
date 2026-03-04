@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.avinashee0012.hireflow.domain.entity.Job;
@@ -25,5 +26,6 @@ public interface JobRepo extends JpaRepository<Job, Long>{
 
     Page<Job> findByJobStatus(JobStatus status, Pageable pageable);
 
+    @Query("select j.id from Job j where j.assignedRecruiterId = :recruiterId") 
     List<Long> findJobIdsByAssignedRecruiterId(Long recruiterId);
 }
