@@ -7,6 +7,7 @@
 #### Companies struggle to manage job postings, candidate applications, hiring stages, and role-based access in a structured, auditable way. HireFlow provides a backend system to manage job lifecycles, candidate pipelines, and secure role-based access.
 
 ## Tracker
+- **[Release v0.8.0](https://github.com/avinashee0012/hireflow/pull/30)** - Beta release: Repository Integration Test
 - **[Release v0.7.0](https://github.com/avinashee0012/hireflow/pull/25)** - Beta release: CI stabilization & actuator integration
 - **[Release v0.6.0](https://github.com/avinashee0012/hireflow/pull/19)** - Beta release: CI pipeline & dockerization
 - **[Release v0.5.0](https://github.com/avinashee0012/hireflow/pull/15)** - Beta release: admin module added
@@ -15,7 +16,7 @@
 - **[Release v0.2.0](https://github.com/avinashee0012/hireflow/pull/7)** - Beta release: job and application workflow
 - **[Release v0.1.0](https://github.com/avinashee0012/hireflow/pull/2)** - Alpha release: authentication and user access
 
-## Current Status (v0.7.0 – Beta)
+## Current Status (v0.8.0 – Beta)
 
 ### Core Features
 
@@ -29,6 +30,7 @@
 - System-level Admin module for user governance
 - Correlation ID logging and structured error responses
 - Actuator endpoints with appropriate security
+- Repository integration tests for all JPA repositories
 
 ### Architecture
 
@@ -40,16 +42,17 @@
 * Profile-based configuration (dev, test, prod)
 * Environment-driven secrets management
 
-### New in v0.7.0
-This release promotes infrastructure enhancements and observability improvements to production. It stabilizes the CI pipeline with proper test profile activation and placeholder configuration while introducing Spring Boot Actuator for application health monitoring.
-
-1. CI Stabilization
-2. Actuator Integration
-3. Profile separation (`dev`, `test`, `prod`)
+### New in v0.8.0
+This PR adds repository integration tests using @DataJpaTest to validate JPA query behavior and database constraints. Tests run against H2 (test profile) and are executed in CI.
+  - UserRepo
+  - RoleRepo
+  - OrganisationRepo
+  - JobRepo
+  - ApplicationRepo
 
 ## Next Milestone
 
-* Integration tests (*planned next*)
+* Integration tests (*in progress*)
 * API Documentation (OpenAPI / Swagger)
 
 
