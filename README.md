@@ -10,16 +10,7 @@ HireFlow is a recruitment backend system built with Spring Boot. It manages job 
 
 # Tracker
 
-- **[Release v1.0.0](https://github.com/avinashee0012/hireflow/releases/tag/v1.0.0)** – Stable release
-    - **[Release v0.9.0](https://github.com/avinashee0012/hireflow/pull/34)** – System refinement and stabilization
-    - **[Release v0.8.0](https://github.com/avinashee0012/hireflow/pull/30)** – Repository integration tests
-    - **[Release v0.7.0](https://github.com/avinashee0012/hireflow/pull/27)** – CI stabilization & actuator integration
-    - **[Release v0.6.0](https://github.com/avinashee0012/hireflow/pull/19)** – CI pipeline & dockerization
-    - **[Release v0.5.0](https://github.com/avinashee0012/hireflow/pull/15)** – Admin module
-    - **[Release v0.4.0](https://github.com/avinashee0012/hireflow/pull/13)** – Unit testing layer
-    - **[Release v0.3.0](https://github.com/avinashee0012/hireflow/pull/10)** – Organisation module & multi-tenancy enforcement
-    - **[Release v0.2.0](https://github.com/avinashee0012/hireflow/pull/7)** – Job and application workflow
-    - **[Release v0.1.0](https://github.com/avinashee0012/hireflow/pull/2)** – Authentication and user access
+- **[Release v1.0.0](https://github.com/avinashee0012/hireflow/pull/36)** – Stable release
 
 ---
 
