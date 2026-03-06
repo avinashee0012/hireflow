@@ -9,6 +9,7 @@
 ---
 
 # Tracker
+- **[Release v0.9.0](https://github.com/avinashee0012/hireflow/pull/34)** - Beta release: project refinement/review
 - **[Release v0.8.0](https://github.com/avinashee0012/hireflow/pull/30)** - Beta release: repository integration tests
 - **[Release v0.7.0](https://github.com/avinashee0012/hireflow/pull/25)** - Beta release: CI stabilization & actuator integration
 - **[Release v0.6.0](https://github.com/avinashee0012/hireflow/pull/19)** - Beta release: CI pipeline & dockerization
