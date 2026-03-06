@@ -4,82 +4,160 @@
   <img src="https://github.com/avinashee0012/hireflow/actions/workflows/ci.yml/badge.svg" />
 </p>
 
-#### Companies struggle to manage job postings, candidate applications, hiring stages, and role-based access in a structured, auditable way. HireFlow provides a backend system to manage job lifecycles, candidate pipelines, and secure role-based access.
+HireFlow is a recruitment backend system built with Spring Boot. It manages job postings, candidate applications, hiring pipelines, and role-based access across multiple organisations. The project demonstrates layered architecture, RBAC security, multi-tenancy enforcement, lifecycle-driven domain modeling, and a complete testing pyramid.
 
 ---
 
 # Tracker
-- **[Release v0.9.0](https://github.com/avinashee0012/hireflow/pull/34)** - Beta release: project refinement/review
-- **[Release v0.8.0](https://github.com/avinashee0012/hireflow/pull/30)** - Beta release: repository integration tests
-- **[Release v0.7.0](https://github.com/avinashee0012/hireflow/pull/25)** - Beta release: CI stabilization & actuator integration
-- **[Release v0.6.0](https://github.com/avinashee0012/hireflow/pull/19)** - Beta release: CI pipeline & dockerization
-- **[Release v0.5.0](https://github.com/avinashee0012/hireflow/pull/15)** - Beta release: admin module added
-- **[Release v0.4.0](https://github.com/avinashee0012/hireflow/pull/13)** - Beta release: unit testing layer added
-- **[Release v0.3.0](https://github.com/avinashee0012/hireflow/pull/10)** - Beta release: organisation module and multi-tenancy enforcement
-- **[Release v0.2.0](https://github.com/avinashee0012/hireflow/pull/7)** - Beta release: job and application workflow
-- **[Release v0.1.0](https://github.com/avinashee0012/hireflow/pull/2)** - Alpha release: authentication and user access
+
+- **[Release v1.0.0](https://github.com/avinashee0012/hireflow/pull/36)** – Stable release
 
 ---
 
-# Current Status (v0.9.0 – Beta)
+# Current Status (v1.0.0 – Stable)
 
-HireFlow is a **production-style backend system** demonstrating multi-tenancy, role-based access control, lifecycle-driven domain modeling, and disciplined backend engineering practices.
+HireFlow is now a stable backend system demonstrating:
+
+- Multi-tenant architecture
+- Role-based access control
+- Domain-driven lifecycle modeling
+- Layered backend architecture
+- Full backend testing pyramid
+- CI pipeline and containerized runtime
 
 ---
 
 # Core Features
 
+### Authentication & Security
 - JWT-based stateless authentication
-- Role-based access control (SUPPORT, ORGADMIN, RECRUITER, CANDIDATE)
-- Organisation lifecycle management (`ACTIVE / SUSPENDED`)
-- Suspension enforcement blocking all state-changing business operations
-- Job lifecycle management (create, update, close, reopen)
-- Candidate application workflow (apply, withdraw, shortlist, reject)
-- Role-aware paginated dashboards for jobs and applications
-- Multi-tenancy enforcement via organisation scoping
-- System-level Admin module for user governance
-- Structured logging with correlation ID tracing
-- Consistent API error responses
-- Spring Boot Actuator for health and system insights
-- Repository integration tests for all JPA repositories
+- Hierarchical RBAC roles:
+  - SUPPORT
+  - ORGADMIN
+  - RECRUITER
+  - CANDIDATE
+- Method-level authorization using Spring Security
+- Defensive service-layer access validation
+
+### Organisation Management
+- Multi-tenant architecture using organisation boundaries
+- Organisation lifecycle:
+  - `ACTIVE`
+  - `SUSPENDED`
+- Suspension enforcement preventing business operations
+
+### Job Management
+- Job creation and updates
+- Recruiter ownership enforcement
+- Job lifecycle:
+  - OPEN
+  - CLOSED
+- Paginated recruiter dashboards
+
+### Application Workflow
+Candidate application lifecycle:
+
+- APPLY
+- WITHDRAW
+- SHORTLIST
+- REJECT
+
+Strict lifecycle transition rules are enforced at the domain layer.
+
+### Admin Governance
+System administrators can:
+
+- View users across organisations
+- Activate / deactivate accounts
+- Update roles
+- Enforce hierarchy rules
+- Prevent self-administrative actions
+
+### Observability
+- Spring Boot Actuator endpoints
+- Health monitoring
+- Structured logging with correlation IDs
+- Secure actuator access
 
 ---
 
 # Architecture
 
-The system follows a **clean layered architecture**:
-`Controller → Service → Domain → Repository`
+HireFlow follows a clean layered architecture:
 
+```
 
-### Design Principles
+Controller → Service → Domain → Repository
 
-- Domain-driven entities with guarded lifecycle transitions
-- Defensive service-layer RBAC validation
-- Organisation-based multi-tenancy enforcement
-- Intent-based repository queries
-- Centralized exception handling
-- Profile-based configuration (`dev`, `test`, `prod`)
-- Environment-driven configuration and secrets
+```
+
+### Controller Layer
+- REST endpoints
+- Request validation
+- Method-level RBAC using `@PreAuthorize`
+
+### Service Layer
+- Business logic
+- Defensive RBAC checks
+- Multi-tenant validation
+- Transaction management
+
+### Domain Layer
+- Entity lifecycle rules
+- Guarded state transitions
+- Business invariants
+
+### Repository Layer
+- Intent-based Spring Data repositories
+- Organisation-scoped queries
+- Pagination support
+
+---
+
+# Security Model
+
+The system uses JWT-based stateless authentication.
+
+Security enforcement happens at two levels:
+
+1. **Controller Layer**
+   - Role-based endpoint access via `@PreAuthorize`
+
+2. **Service Layer**
+   - Ownership validation
+   - Organisation boundary checks
+   - Defensive RBAC enforcement
+
+This layered approach prevents privilege escalation and cross-tenant access.
+
+---
+
+# Multi-Tenancy Design
+
+HireFlow uses organisation-based multi-tenancy.
+
+Key rules:
+
+- Every business entity belongs to an `organisationId`
+- Service layer validates organisation ownership
+- Repository queries enforce organisation scoping
+- Cross-organisation access is prevented
+
+This design ensures strict tenant isolation.
 
 ---
 
 # Testing Strategy
 
-HireFlow follows a layered testing approach:
+**Domain Tests:** *Validate entity lifecycle rules and business invariants.*
 
-- **Domain Tests**  
-  Validate entity lifecycle rules and domain invariants.
+**Service Tests:** *Verify RBAC enforcement, ownership checks, and business logic.*
 
-- **Service Tests**  
-  Verify RBAC enforcement, ownership checks, and business logic.
+**Controller Slice Tests:** *Validate HTTP behavior, security configuration, and request validation.*
 
-- **Controller Slice Tests**  
-  Validate API contracts, HTTP status codes, and security configuration.
+**Repository Integration Tests:** *Ensure correct JPA queries, pagination behavior, and database constraints.*
 
-- **Repository Integration Tests**  
-  Ensure correct JPA query behavior, pagination logic, and database integrity constraints.
-
-All tests run in CI using the **test profile with H2**.
+All tests run automatically in CI.
 
 ---
 
@@ -89,41 +167,92 @@ All tests run in CI using the **test profile with H2**.
 - **Spring Boot 3.4**
 - **Spring Security (JWT + Method Security)**
 - **Spring Data JPA / Hibernate**
-- **MySQL (dev/prod)**
+- **MySQL (dev / production)**
 - **H2 (test environment)**
-- **GitHub Actions CI Pipeline**
-- **Docker multi-stage build**
+- **GitHub Actions CI pipeline**
+- **Docker multi-stage containerization**
 - **Spring Boot Actuator**
 
 ---
 
-# New in v0.9.0
+# Running the Project
 
-This release focuses on **refinement and stabilization** before the v1.0 milestone.
+## Local Development
 
-No new business features were introduced.
+```
 
-### Improvements
+mvn spring-boot:run
 
-- Repository layer review and query cleanup
-- Logging improvements and correlation tracing
-- API response consistency improvements
-- Global exception handling refinement
-- Codebase consistency improvements
-- Endpoint review and REST convention alignment
-- Documentation updates and architecture clarification
+```
 
-The goal of this release is to improve **maintainability, clarity, and production readiness**.
+The application will start on:
+
+```
+
+[http://localhost:8080](http://localhost:8080)
+
+```
 
 ---
 
-# Next Milestone
+## Running Tests
 
-### **v1.0.0 – First Major Release**
+```
 
-The upcoming release will mark the project as **production-ready portfolio work**, including:
+mvn clean verify
 
-- Final stability pass
-- Documentation polish
-- Clean release tagging
-- Finalized architecture documentation
+```
+
+Tests run using the `test` profile with an in-memory H2 database.
+
+---
+
+## Docker Build
+
+Build the container image:
+
+```
+
+docker build -t hireflow .
+
+```
+
+Run the container:
+
+```
+
+docker run -p 8080:8080 hireflow
+
+```
+
+---
+
+# API Endpoints
+
+| Method | Endpoint                                     | Description                                    |
+| ------ | -------------------------------------------- | ---------------------------------------------- |
+| POST   | `/api/auth/register`                         | Register a new user                            |
+| POST   | `/api/auth/login`                            | Authenticate user and return JWT token         |
+| POST   | `/api/organisations`                         | Create a new organisation                      |
+| GET    | `/api/organisations/{orgId}`                 | Get organisation details                       |
+| PATCH  | `/api/organisations/{orgId}/activate`        | Activate an organisation                       |
+| PATCH  | `/api/organisations/{orgId}/suspend`         | Suspend an organisation                        |
+| POST   | `/api/jobs`                                  | Create a new job                               |
+| GET    | `/api/jobs`                                  | Get paginated list of jobs                     |
+| GET    | `/api/jobs/{jobId}`                          | Get job details                                |
+| PUT    | `/api/jobs/{jobId}`                          | Update job details                             |
+| PATCH  | `/api/jobs/{jobId}/close`                    | Close a job                                    |
+| PATCH  | `/api/jobs/{jobId}/reopen`                   | Reopen a job                                   |
+| POST   | `/api/applications/{jobId}`                  | Apply to a job                                 |
+| GET    | `/api/applications`                          | Get paginated list of applications             |
+| PATCH  | `/api/applications/{applicationId}/withdraw` | Withdraw a job application                     |
+| PATCH  | `/api/applications/{applicationId}/status`   | Update application status (shortlist / reject) |
+| GET    | `/api/admin/users`                           | Get paginated list of users                    |
+| PATCH  | `/api/admin/users/{id}/activate`             | Activate a user                                |
+| PATCH  | `/api/admin/users/{id}/deactivate`           | Deactivate a user                              |
+| PATCH  | `/api/admin/users/{id}/roles`                | Update user roles                              |
+---
+
+# License
+
+This project is open source and available under the MIT License.
